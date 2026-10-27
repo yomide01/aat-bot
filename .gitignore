@@ -1,0 +1,49 @@
+# Environment & Secrets (CRITICAL - NEVER COMMIT)
+.env
+.env.*
+*.env
+*.pem
+*.key
+*client_secret*.json
+backend/.env
+data/private/
+
+# Python caches
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+ENV/
+build/
+dist/
+*.egg-info/
+
+# Media, Temp Video Renders & Local State
+data/clips/*
+data/output/*
+data/reports/*
+data/score_frames/
+data/*.json
+data/banner_*.png
+data/ranking_concat.txt
+data/rank_segment_*.mp4
+data/pending/local_job.json
+!data/clips/.gitkeep
+!data/output/.gitkeep
+*.mp4
+*.mp3
+*.wav
+*.mkv
+*.webm
+
+# OS & Editor files
+.DS_Store
+Thumbs.db
+desktop.ini
+.vscode/
+.idea/
+*.swp
+*.swo

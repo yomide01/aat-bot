@@ -1,0 +1,96 @@
+name: AAT Daily YouTube Shorts Run
+
+on:
+  schedule:
+    # 15:23 UTC is 4:23 PM in Nigeria (WAT, UTC+1) and 11:23 AM US Eastern (where 63% of channel viewers live).
+    # Using off-peak minute :23 avoids GitHub Actions top-of-the-hour (:00) cron queue delays (which previously pushed 18:00 UTC to 11:30 PM WAT),
+    # delivering the finished Short to Telegram right before the 5:00 PM - 7:30 PM WAT / 12:00 PM - 2:30 PM EST global YouTube Shorts surge!
+    - cron: '23 15 * * *'
+  workflow_dispatch:
+    inputs:
+      niche:
+        description: 'Leave blank to auto-rotate sub-niche (or: epic_fails, football_moments, pranks, embarrassing_moments, funny_moments, wild_moments, crazy_moments, instant_karma, gym_fails, cute_moments)'
+        required: false
+        default: 'auto'
+      topic:
+        description: 'On-screen title. Leave blank for the automatic one.'
+        required: false
+        default: ''
+      wait_approval_min:
+        description: 'Minutes this run stays awake waiting for your Approve tap'
+        required: false
+        default: '40'
+
+permissions:
+  contents: write
+  actions: read
+
+concurrency:
+  group: aat-produce
+  cancel-in-progress: true
+
+jobs:
+  run-aat-engine:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: 'pip'
+
+      - name: Verify FFmpeg
+        run: command -v ffmpeg && ffmpeg -version | head -n 1 || (sudo apt-get update && sudo apt-get install -y ffmpeg)
+
+      - name: Install Dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r backend/requirements.txt
+
+      - name: Source clips from TikTok and compile YouTube Short
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_EVENT_NAME: ${{ github.event_name }}
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          YOUTUBE_CLIENT_ID: ${{ secrets.YOUTUBE_CLIENT_ID }}
+          YOUTUBE_CLIENT_SECRET: ${{ secrets.YOUTUBE_CLIENT_SECRET }}
+          YOUTUBE_REFRESH_TOKEN: ${{ secrets.YOUTUBE_REFRESH_TOKEN }}
+          YOUTUBE_ACCESS_TOKEN: ${{ secrets.YOUTUBE_ACCESS_TOKEN }}
+          YOUTUBE_REDIRECT_URI: https://yomide01.github.io/callback
+          PYTHONPATH: .
+        run: |
+          python scripts/run_pipeline.py --action prepare --niche "${{ github.event.inputs.niche || '' }}" --topic "${{ github.event.inputs.topic || '' }}"
+
+      - name: Save the YouTube Short for later approval
+        if: hashFiles('data/pending/local_job.json') != ''
+        uses: actions/upload-artifact@v4
+        with:
+          name: aat-pending
+          path: |
+            data/output/*.mp4
+            data/pending/local_job.json
+          retention-days: 10
+
+      - name: Send to Telegram and upload to YouTube Shorts on Approve
+        if: hashFiles('data/pending/local_job.json') != ''
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_RUN_ID: ${{ github.run_id }}
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          YOUTUBE_CLIENT_ID: ${{ secrets.YOUTUBE_CLIENT_ID }}
+          YOUTUBE_CLIENT_SECRET: ${{ secrets.YOUTUBE_CLIENT_SECRET }}
+          YOUTUBE_REFRESH_TOKEN: ${{ secrets.YOUTUBE_REFRESH_TOKEN }}
+          YOUTUBE_ACCESS_TOKEN: ${{ secrets.YOUTUBE_ACCESS_TOKEN }}
+          YOUTUBE_REDIRECT_URI: https://yomide01.github.io/callback
+          PYTHONPATH: .
+        run: |
+          python scripts/run_pipeline.py --action announce --wait-approval-min "${{ github.event.inputs.wait_approval_min || '40' }}"

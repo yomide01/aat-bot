@@ -1,45 +1,45 @@
 {
-  "niche": "epic_fails",
-  "subniche_label": "Epic Fails & Instant Regret",
-  "seed_topic": "Ranking Epic Fails Until I Lose It",
+  "niche": "funny_moments",
+  "subniche_label": "Pure Comedy & Contagious Laughter",
+  "seed_topic": "Ranking Clips That Made The Cameraman Lose It",
   "analytics_overview": {
-    "subscribers": 3,
-    "total_views": 6279,
-    "total_videos": 3,
+    "subscribers": 4,
+    "total_views": 6519,
+    "total_videos": 4,
     "traffic_sources": [
       {
         "source": "SHORTS",
-        "views": 995,
-        "watch_minutes": 88,
-        "share_pct": 85.0
+        "views": 2528,
+        "watch_minutes": 506,
+        "share_pct": 88.3
       },
       {
         "source": "YT_SEARCH",
-        "views": 153,
-        "watch_minutes": 14,
-        "share_pct": 13.1
+        "views": 288,
+        "watch_minutes": 33,
+        "share_pct": 10.1
       },
       {
         "source": "YT_OTHER_PAGE",
-        "views": 18,
-        "watch_minutes": 2,
-        "share_pct": 1.5
+        "views": 28,
+        "watch_minutes": 4,
+        "share_pct": 1.0
       },
       {
         "source": "YT_CHANNEL",
-        "views": 3,
-        "watch_minutes": 0,
-        "share_pct": 0.3
+        "views": 15,
+        "watch_minutes": 2,
+        "share_pct": 0.5
       },
       {
-        "source": "SUBSCRIBER",
-        "views": 1,
+        "source": "EXT_URL",
+        "views": 3,
         "watch_minutes": 0,
         "share_pct": 0.1
       },
       {
-        "source": "EXT_URL",
-        "views": 1,
+        "source": "SUBSCRIBER",
+        "views": 2,
         "watch_minutes": 0,
         "share_pct": 0.1
       }
@@ -47,39 +47,96 @@
     "top_countries": [
       {
         "country": "US",
-        "views": 735,
-        "watch_minutes": 61,
-        "avg_view_pct": 71.0,
-        "share_pct": 88.0
+        "views": 1839,
+        "watch_minutes": 329,
+        "avg_view_pct": 49.5,
+        "share_pct": 84.2
       },
       {
         "country": "ID",
-        "views": 53,
-        "watch_minutes": 3,
-        "avg_view_pct": 55.0,
-        "share_pct": 6.3
+        "views": 105,
+        "watch_minutes": 18,
+        "avg_view_pct": 55.2,
+        "share_pct": 4.8
+      },
+      {
+        "country": "GB",
+        "views": 67,
+        "watch_minutes": 16,
+        "avg_view_pct": 47.8,
+        "share_pct": 3.1
       },
       {
         "country": "NG",
         "views": 47,
         "watch_minutes": 7,
         "avg_view_pct": 52.8,
-        "share_pct": 5.6
+        "share_pct": 2.2
+      },
+      {
+        "country": "IN",
+        "views": 46,
+        "watch_minutes": 4,
+        "avg_view_pct": 33.1,
+        "share_pct": 2.1
+      },
+      {
+        "country": "BR",
+        "views": 32,
+        "watch_minutes": 8,
+        "avg_view_pct": 48.5,
+        "share_pct": 1.5
+      },
+      {
+        "country": "TR",
+        "views": 24,
+        "watch_minutes": 3,
+        "avg_view_pct": 29.7,
+        "share_pct": 1.1
+      },
+      {
+        "country": "AU",
+        "views": 23,
+        "watch_minutes": 6,
+        "avg_view_pct": 46.6,
+        "share_pct": 1.1
       }
     ],
-    "best_upload_window_wat": "2026-10-28 19:15 WAT ('Ranking The Craziest 200 IQ Moments That L...' -> 3,135 views)",
+    "best_upload_window_wat": "2026-10-28 19:15 WAT ('Ranking The Craziest 200 IQ Moments That L...' -> 3,323 views)",
     "published_videos": [
+      {
+        "id": "NXIdavVuL4g",
+        "title": "Ranking Epic Fails That Defy All Logic #Shorts",
+        "published_wat": "2026-10-30 19:01 WAT",
+        "hour_wat": 19,
+        "day_of_week": "Friday",
+        "age_hours": 1.9,
+        "duration_sec": 49,
+        "views": 1,
+        "velocity_vph": 0.5,
+        "likes": 0,
+        "like_rate_pct": 0.0,
+        "comments": 0,
+        "comment_rate_pct": 0.0,
+        "avg_view_duration_sec": 0.0,
+        "avg_view_pct": 0.0,
+        "watch_minutes": 0,
+        "shares": 0,
+        "subs_gained": 0,
+        "algo_tier": "WARMING_UP (Early Seed Testing)",
+        "url": "https://www.youtube.com/shorts/NXIdavVuL4g"
+      },
       {
         "id": "lYsvH9X9tgI",
         "title": "Ranking The Most Unbelievable Moments Caught On Camera (Wait For #1!) #Shorts",
         "published_wat": "2026-10-29 23:50 WAT",
         "hour_wat": 23,
         "day_of_week": "Thursday",
-        "age_hours": 19.0,
+        "age_hours": 21.1,
         "duration_sec": 57,
-        "views": 1835,
-        "velocity_vph": 96.6,
-        "likes": 36,
+        "views": 1888,
+        "velocity_vph": 89.5,
+        "likes": 37,
         "like_rate_pct": 1.96,
         "comments": 0,
         "comment_rate_pct": 0.0,
@@ -97,19 +154,19 @@
         "published_wat": "2026-10-28 19:15 WAT",
         "hour_wat": 19,
         "day_of_week": "Wednesday",
-        "age_hours": 47.6,
+        "age_hours": 49.7,
         "duration_sec": 52,
-        "views": 3135,
-        "velocity_vph": 65.9,
+        "views": 3323,
+        "velocity_vph": 66.9,
         "likes": 30,
-        "like_rate_pct": 0.96,
+        "like_rate_pct": 0.9,
         "comments": 0,
         "comment_rate_pct": 0.0,
-        "avg_view_duration_sec": 0.0,
-        "avg_view_pct": 0.0,
-        "watch_minutes": 0,
+        "avg_view_duration_sec": 26.0,
+        "avg_view_pct": 50.6,
+        "watch_minutes": 413,
         "shares": 0,
-        "subs_gained": 0,
+        "subs_gained": 2,
         "algo_tier": "BREAKOUT_SEED (High Algorithmic Push)",
         "url": "https://www.youtube.com/shorts/aQeSmZ8ru9I"
       },
@@ -119,17 +176,17 @@
         "published_wat": "2026-10-27 21:08 WAT",
         "hour_wat": 21,
         "day_of_week": "Tuesday",
-        "age_hours": 69.7,
+        "age_hours": 71.8,
         "duration_sec": 22,
-        "views": 1309,
-        "velocity_vph": 18.8,
+        "views": 1307,
+        "velocity_vph": 18.2,
         "likes": 21,
-        "like_rate_pct": 1.6,
+        "like_rate_pct": 1.61,
         "comments": 0,
         "comment_rate_pct": 0.0,
-        "avg_view_duration_sec": 16.0,
-        "avg_view_pct": 76.2,
-        "watch_minutes": 100,
+        "avg_view_duration_sec": 15.0,
+        "avg_view_pct": 72.6,
+        "watch_minutes": 111,
         "shares": 1,
         "subs_gained": 0,
         "algo_tier": "HEALTHY_SEED (Strong Test Pool)",
@@ -138,131 +195,163 @@
     ]
   },
   "strategy": {
-    "shadowban_or_seed_status": "The channel is currently in a healthy BREAKOUT_SEED phase. With 85% of traffic originating from the Shorts Feed and a significant 88% US audience share, the algorithm is actively attempting to find a permanent home for the content. We are not shadowbanned; we are being 'vetted' for high-retention potential.",
+    "shadowban_or_seed_status": "No shadowban present. Channel is in an active algorithmic seed state with 88.3% Shorts Feed traffic and multiple videos reaching 1.3k\u20133.3k views. Seed testing takes between 2 to 6 hours to initiate on new uploads.",
     "per_video_autopsy": [
       {
+        "title": "Ranking Epic Fails That Defy All Logic #Shorts",
+        "metrics": "1 view | 0 likes | 49s runtime | Uploaded 19:01 WAT",
+        "verdict": "Too early in the seed lifecycle (only 1.9h live). Algorithm is still indexing topic tags and queuing the initial test cohort."
+      },
+      {
         "title": "Ranking The Most Unbelievable Moments Caught On Camera (Wait For #1!) #Shorts",
-        "metrics": "1,835 views | 96.6 vph | 1.96% Like Ratio",
-        "verdict": "Strongest initial velocity. The 'Unbelievable' hook worked, but the 1.96% like ratio suggests the clips didn't quite deliver on the high promise of the title."
+        "metrics": "1,888 views | 89.5 v/hr | 1.96% like ratio | 57s runtime | Uploaded 23:50 WAT",
+        "verdict": "Strong current momentum. Late-night WAT upload hit morning feeds in Asian markets and US overnight traffic, driving solid engagement."
       },
       {
         "title": "Ranking The Craziest 200 IQ Moments That Look Like CGI (Did #2 Actually Rob #1?) #Shorts",
-        "metrics": "3,135 views | 65.9 vph | 0.96% Like Ratio",
-        "verdict": "Highest total reach but lowest viewer satisfaction. The 0.96% like ratio is a warning sign that the '200 IQ' framing felt like clickbait or the ranking order was frustratingly illogical."
+        "metrics": "3,323 views | 66.9 v/hr | 0.90% like ratio | 52s runtime | 26.0s AVD (50.6% AVP)",
+        "verdict": "Best overall view count. A strong 26-second total watch duration and ideal 19:15 WAT release time aligned with peak US audience hours."
       },
       {
         "title": "Ranking The Funniest Cameraman Laughs (Wait For #1!) #Shorts",
-        "metrics": "1,309 views | 18.8 vph | 76.2% AVP",
-        "verdict": "Excellent retention (76.2%) due to the short 22s duration, but the low view count proves that 'Cameraman Laughs' has a much lower ceiling than 'Unbelievable Moments' in the broad Shorts Feed."
+        "metrics": "1,307 views | 18.2 v/hr | 1.61% like ratio | 22s runtime | 15.0s AVD (72.6% AVP)",
+        "verdict": "High retention percentage (72.6%) due to short 22s length, but total watch duration (15s) was too short for a major breakout."
       }
     ],
-    "viral_vs_stalled_reason": "Total Watch Time is currently our primary growth lever. Our 50s+ videos are getting 2x-3x more views than the 22s video, even with lower percentage-based retention. The channel is stalling on engagement because the 'Ranking' and 'Wait for #1' tropes are being tuned out by savvy viewers, resulting in 0 comments.",
-    "engagement_diagnosis": "The comment section is a ghost town because the current titles feel like 'AI-generated' or 'content farm' templates. To fix this, we need to stop 'telling' the viewer what to feel and start 'asking' for their expertise. We will use a 'Which side are you on?' or a 'Spot the error' approach to force a comment.",
-    "peak_timing_insight": "The 19:15 WAT window is our 'Golden Hour.' It captures the US East Coast (14:15 EST) during the mid-afternoon slump and the Nigerian/UK audience during prime evening browsing. We will maintain this 19:00-20:00 WAT window.",
-    "ranking_tactic": "The 'Escalation of Chaos' arc. Instead of a numbered list, we will present the clips as a series of 'Levels' (Level: Lucky, Level: Impossible, Level: God Mode). This removes the 'Ranking' fatigue while still providing a structured reason to watch until the end.",
-    "editing_pacing_sec": 10.4,
-    "packaging_directive": "Title: 'The Physics In These Clips Just Stopped Working #Shorts'. Description: 'I have watched the third clip ten times and I still don't understand how they survived. Do you think that was skill or just pure luck? #glitch #insane #physics'",
-    "fresh_engagement_hook": "Intentionally include a subtle, unnamed detail in the background of Clip #2 and ask: 'Wait, did anyone else see what happened in the background of the second clip?'",
-    "like_rate_pct": 1.39,
+    "viral_vs_stalled_reason": "Outperformers combine total watch time exceeding 25 seconds with uploads timed between 19:00 and 20:00 WAT. Shorter or off-peak videos stall out because lower raw watch seconds give the algorithm less incentive to push outside initial test pools.",
+    "engagement_diagnosis": "0 total comments across 6.5k views indicates passive viewer consumption. Title gimmicks like '(Wait For #1!)' are being ignored. Audience conversion requires a genuine, specific question anchored directly to a clip's outcome rather than repetitive parentheticals.",
+    "peak_timing_insight": "19:00 - 20:00 WAT directly hits 14:00 - 15:00 EST in North America (our 84.2% US base), capturing prime afternoon viewing hours before falling off into late night.",
+    "ranking_tactic": "Structure clips by escalation of visual scale rather than numerical arbitrary quality. Lead with an immediate, high-velocity motion event on Clip 5, build momentum through increasing chaos, and end on a clean, unresolved visual cliffhanger.",
+    "editing_pacing_sec": 9.5,
+    "packaging_directive": "Drop all repetitive parenthetical formulas, 'Ranking The...' titles, and clickbait prompts. Use concise, grounded observation titles such as: '5 Times Physics Broke In Broad Daylight #Shorts'.",
+    "like_rate_pct": 1.35,
     "comment_rate_pct": 0.0,
-    "active_model": "gemini-3-flash-preview"
+    "active_model": "gemini-3.6-flash"
   },
   "viral_queries": [
-    "epic fail caught on camera",
-    "instant regret fail moment",
-    "funny slip and fall fail",
-    "what could go wrong fail"
+    "contagious laughter funny moment",
+    "try not to laugh viral clip",
+    "unexpected funny moment caught on camera",
+    "hilarious reaction video"
   ],
   "failures": [
     {
-      "url": "https://www.tiktok.com/@fox4newsdallasfortworth/video/7528471417524931870",
-      "reason": "rejected: compilation/news edit"
-    },
-    {
-      "url": "https://www.tiktok.com/@joelbergs/video/7416505113570757895",
+      "url": "https://www.tiktok.com/@peterprankster/video/7338563395706162478",
       "reason": "skipped or empty after yt-dlp match_filter"
     },
     {
-      "url": "https://www.tiktok.com/@funnyloop__/video/7565105620060228882",
-      "reason": "rejected: compilation/news edit"
-    },
-    {
-      "url": "https://www.tiktok.com/@centurion.tv/video/7521596897291685151",
+      "url": "https://www.tiktok.com/@ladbible/video/7536160969177959682",
       "reason": "skipped or empty after yt-dlp match_filter"
     },
     {
-      "url": "https://www.tiktok.com/@deraldorsey/video/7615624288653069599",
-      "reason": "ERROR: [TikTok] 7615624288653069599: This post may not be comfortable for some audiences. Log in for access. Use --cookies-from-browser or --cookies for the aut"
-    },
-    {
-      "url": "https://www.tiktok.com/@failarmy/video/7429454352235892010",
-      "reason": "rejected: compilation/news edit"
-    },
-    {
-      "url": "https://www.tiktok.com/@in.the.pond.advent/video/7620373019709639956",
-      "reason": "rejected: compilation/news edit"
-    },
-    {
-      "url": "https://www.tiktok.com/@ridiculousness/video/7486148383883693358",
-      "reason": "rejected: compilation/news edit"
-    },
-    {
-      "url": "https://www.tiktok.com/@theviralspot562/video/7222671057725984042",
-      "reason": "rejected: compilation/news edit"
-    },
-    {
-      "url": "https://www.tiktok.com/@afvofficial/video/7504393647048199470",
+      "url": "https://www.tiktok.com/@updatingshow/video/7194543167935401259",
       "reason": "skipped or empty after yt-dlp match_filter"
     },
     {
-      "url": "https://www.tiktok.com/@espn/video/7476529815235857694",
-      "reason": "skipped: max 1 clip per creator (espn)"
+      "url": "https://www.tiktok.com/@theimprovguy/video/7319627649133939998",
+      "reason": "skipped or empty after yt-dlp match_filter"
+    },
+    {
+      "url": "https://www.tiktok.com/@worthfeed099/video/7285793742857047339",
+      "reason": "skipped or empty after yt-dlp match_filter"
+    },
+    {
+      "url": "https://www.tiktok.com/@rafael_4224/video/7566319047000788232",
+      "reason": "skipped or empty after yt-dlp match_filter"
+    },
+    {
+      "url": "https://www.tiktok.com/@tedtoks/video/7504699744531303711",
+      "reason": "skipped or empty after yt-dlp match_filter"
+    },
+    {
+      "url": "https://www.tiktok.com/@cringe.hq/video/7498698574465666326",
+      "reason": "skipped or empty after yt-dlp match_filter"
+    },
+    {
+      "url": "https://www.tiktok.com/@parishilton/video/7385788671804312863",
+      "reason": "skipped or empty after yt-dlp match_filter"
+    },
+    {
+      "url": "https://www.tiktok.com/@jaytycomedyclips/video/7165975459010710790",
+      "reason": "skipped or empty after yt-dlp match_filter"
+    },
+    {
+      "url": "https://www.tiktok.com/@clip.das/video/7228656828790476059",
+      "reason": "skipped or empty after yt-dlp match_filter"
+    },
+    {
+      "url": "https://www.tiktok.com/@peterprankster/video/7307786148703751466",
+      "reason": "skipped or empty after yt-dlp match_filter"
+    },
+    {
+      "url": "https://www.tiktok.com/@areyouafanofanimalstoo/video/7669724233366342942",
+      "reason": "skipped or empty after yt-dlp match_filter"
+    },
+    {
+      "url": "https://www.tiktok.com/@sesieunli/video/7675579296836029714",
+      "reason": "ERROR: [TikTok] 7675579296836029714: Your IP address is blocked from accessing this post"
+    },
+    {
+      "url": "https://www.tiktok.com/@contagiouslaughter_/video/7377021708751916320",
+      "reason": "skipped or empty after yt-dlp match_filter"
+    },
+    {
+      "url": "https://www.tiktok.com/@squashbucket.productions/video/7616900977978887454",
+      "reason": "rejected: compilation/news edit"
+    },
+    {
+      "url": "https://www.tiktok.com/@imtoolie/video/7632418316467932429",
+      "reason": "rejected: compilation/news edit"
+    },
+    {
+      "url": "https://www.tiktok.com/@funnymax48/video/7700592145706601750",
+      "reason": "skipped or empty after yt-dlp match_filter"
     }
   ],
   "candidates": 30,
   "scored": 6,
   "video": "/home/runner/work/aat-bot/aat-bot/data/output/master_youtube_shorts.mp4",
-  "final_title": "Ranking Epic Fails That Defy All Logic #Shorts",
+  "final_title": "5 Times The Cameraman Completely Lost It Laughing #Shorts",
   "segments": [
     {
       "rank": 5,
-      "rank_label": "Level: Fail",
-      "what_happens": "A girl attempts a stylish spin and pose with a bow and arrow, but the arrow awkwardly flops out.",
+      "rank_label": "Desi Dance Chaos",
+      "what_happens": "A girl dances energetically on a movie set with cannons in the background while text mocks love marriage.",
       "start_sec": 0.0,
-      "duration": 6.73,
-      "raw_duration": 6.733333
+      "duration": 6.41,
+      "raw_duration": 6.408005
     },
     {
       "rank": 4,
-      "rank_label": "Level: Balance",
-      "what_happens": "A man carrying a coffee mug and keys walks up his porch steps, missteps, slips backward onto his back, and laughs it off.",
+      "rank_label": "Short King Quest",
+      "what_happens": "A blindfolded woman feels men's heights in a game, playfully passes over tall guys, and gleefully picks a guy who is shorter than her, causing instant contagious laughter.",
       "start_sec": 0.0,
-      "duration": 12.1,
-      "raw_duration": 12.095986
+      "duration": 14.91,
+      "raw_duration": 14.905011
     },
     {
       "rank": 3,
-      "rank_label": "Level: Chaos",
-      "what_happens": "A couple cuts into their elaborate wedding cake only to realize it is a hollow prank, leading to hilarious shock.",
+      "rank_label": "INSTANT LAUGHTER",
+      "what_happens": "A man plays a funny song or snippet for his friend at a table, who immediately cracks up and buries his face in uncontrollable laughter.",
       "start_sec": 0.0,
-      "duration": 8.34,
-      "raw_duration": 8.337007
+      "duration": 13.3,
+      "raw_duration": 27.9035
     },
     {
       "rank": 2,
-      "rank_label": "Level: Splash",
-      "what_happens": "A girl attempts to jump from a high wooden deck onto a floating dock at night but misses and falls into the water.",
+      "rank_label": "The Wheezing Dog",
+      "what_happens": "A cameraman wheezes with hysterical laughter while filming their dog, who reacts with a series of bizarrely hilarious facial expressions.",
       "start_sec": 0.0,
-      "duration": 12.54,
-      "raw_duration": 12.538005
+      "duration": 5.25,
+      "raw_duration": 5.247007
     },
     {
       "rank": 1,
-      "rank_label": "Level: God Mode",
-      "what_happens": "Two guys traverse a rope over a mud pit when one attempts a backflip over his friend and face-plants.",
+      "rank_label": "The Stage Bed Fail",
+      "what_happens": "A husband testing a staged display bed while house hunting accidentally breaks it, causing the cameraman to burst into uncontrollable, contagious laughter.",
       "start_sec": 0.0,
-      "duration": 8.52,
-      "raw_duration": 8.520998
+      "duration": 17.3,
+      "raw_duration": 17.300998
     }
   ]
 }

@@ -1,0 +1,264 @@
+{
+  "niche": "instant_karma",
+  "subniche_label": "Instant Karma Caught on Camera",
+  "seed_topic": "Ranking Instant Karma Moments That Hit Immediately",
+  "analytics_overview": {
+    "subscribers": 3,
+    "total_views": 6022,
+    "total_videos": 3,
+    "traffic_sources": [
+      {
+        "source": "SHORTS",
+        "views": 995,
+        "watch_minutes": 88,
+        "share_pct": 85.0
+      },
+      {
+        "source": "YT_SEARCH",
+        "views": 153,
+        "watch_minutes": 14,
+        "share_pct": 13.1
+      },
+      {
+        "source": "YT_OTHER_PAGE",
+        "views": 18,
+        "watch_minutes": 2,
+        "share_pct": 1.5
+      },
+      {
+        "source": "YT_CHANNEL",
+        "views": 3,
+        "watch_minutes": 0,
+        "share_pct": 0.3
+      },
+      {
+        "source": "SUBSCRIBER",
+        "views": 1,
+        "watch_minutes": 0,
+        "share_pct": 0.1
+      },
+      {
+        "source": "EXT_URL",
+        "views": 1,
+        "watch_minutes": 0,
+        "share_pct": 0.1
+      }
+    ],
+    "top_countries": [
+      {
+        "country": "US",
+        "views": 735,
+        "watch_minutes": 61,
+        "avg_view_pct": 71.0,
+        "share_pct": 88.0
+      },
+      {
+        "country": "ID",
+        "views": 53,
+        "watch_minutes": 3,
+        "avg_view_pct": 55.0,
+        "share_pct": 6.3
+      },
+      {
+        "country": "NG",
+        "views": 47,
+        "watch_minutes": 7,
+        "avg_view_pct": 52.8,
+        "share_pct": 5.6
+      }
+    ],
+    "best_upload_window_wat": "2026-10-28 19:15 WAT ('Ranking The Craziest 200 IQ Moments That L...' -> 2,994 views)",
+    "published_videos": [
+      {
+        "id": "lYsvH9X9tgI",
+        "title": "Ranking The Most Unbelievable Moments Caught On Camera (Wait For #1!) #Shorts",
+        "published_wat": "2026-10-29 23:50 WAT",
+        "hour_wat": 23,
+        "day_of_week": "Thursday",
+        "age_hours": 17.7,
+        "duration_sec": 57,
+        "views": 1721,
+        "velocity_vph": 97.2,
+        "likes": 33,
+        "like_rate_pct": 1.92,
+        "comments": 0,
+        "comment_rate_pct": 0.0,
+        "avg_view_duration_sec": 0.0,
+        "avg_view_pct": 0.0,
+        "watch_minutes": 0,
+        "shares": 0,
+        "subs_gained": 0,
+        "algo_tier": "BREAKOUT_SEED (High Algorithmic Push)",
+        "url": "https://www.youtube.com/shorts/lYsvH9X9tgI"
+      },
+      {
+        "id": "aQeSmZ8ru9I",
+        "title": "Ranking The Craziest 200 IQ Moments That Look Like CGI (Did #2 Actually Rob #1?) #Shorts",
+        "published_wat": "2026-10-28 19:15 WAT",
+        "hour_wat": 19,
+        "day_of_week": "Wednesday",
+        "age_hours": 46.3,
+        "duration_sec": 52,
+        "views": 2994,
+        "velocity_vph": 64.7,
+        "likes": 28,
+        "like_rate_pct": 0.94,
+        "comments": 0,
+        "comment_rate_pct": 0.0,
+        "avg_view_duration_sec": 0.0,
+        "avg_view_pct": 0.0,
+        "watch_minutes": 0,
+        "shares": 0,
+        "subs_gained": 0,
+        "algo_tier": "BREAKOUT_SEED (High Algorithmic Push)",
+        "url": "https://www.youtube.com/shorts/aQeSmZ8ru9I"
+      },
+      {
+        "id": "bUkmWrxpERU",
+        "title": "Ranking The Funniest Cameraman Laughs (Wait For #1!) #Shorts",
+        "published_wat": "2026-10-27 21:08 WAT",
+        "hour_wat": 21,
+        "day_of_week": "Tuesday",
+        "age_hours": 68.4,
+        "duration_sec": 22,
+        "views": 1307,
+        "velocity_vph": 19.1,
+        "likes": 21,
+        "like_rate_pct": 1.61,
+        "comments": 0,
+        "comment_rate_pct": 0.0,
+        "avg_view_duration_sec": 16.0,
+        "avg_view_pct": 76.2,
+        "watch_minutes": 100,
+        "shares": 1,
+        "subs_gained": 0,
+        "algo_tier": "HEALTHY_SEED (Strong Test Pool)",
+        "url": "https://www.youtube.com/shorts/bUkmWrxpERU"
+      }
+    ]
+  },
+  "strategy": {
+    "shadowban_or_seed_status": "The channel is in a healthy BREAKOUT_SEED phase. With 85% of traffic coming from the Shorts Feed and a significant 13.1% from Search, the algorithm has clearly identified the niche. We are not shadowbanned; however, the lack of comments is the current 'glass ceiling' preventing a transition into the Viral Tier.",
+    "per_video_autopsy": [
+      {
+        "title": "Ranking The Most Unbelievable Moments Caught On Camera (Wait For #1!)",
+        "metrics": "1,721 views | 97.2 views/hr | 1.92% Like Ratio",
+        "verdict": "Strongest recent velocity. The 57s duration maximized Total Watch Time, but the generic title is starting to see diminishing returns in CTR."
+      },
+      {
+        "title": "Ranking The Craziest 200 IQ Moments That Look Like CGI (Did #2 Actually Rob #1?)",
+        "metrics": "2,994 views | 64.7 views/hr | 0.94% Like Ratio",
+        "verdict": "The channel's peak performer. The 'CGI' keyword likely triggered the high Search traffic (13%), though the like-to-view ratio is dangerously low, suggesting the 'Robbed' gimmick felt like clickbait."
+      },
+      {
+        "title": "Ranking The Funniest Cameraman Laughs (Wait For #1!)",
+        "metrics": "1,307 views | 19.1 views/hr | 1.61% Like Ratio",
+        "verdict": "Highest AVP (76.2%) but lowest total views. At 22s, it didn't provide enough 'weight' for the algorithm to push it as a long-form Short. It lacked the 'stakes' of the IQ/CGI video."
+      }
+    ],
+    "viral_vs_stalled_reason": "The channel stalls when the content is too short (22s) or the engagement is purely passive. Our 50s+ videos perform 2x better because they accumulate more absolute retention time. We are currently 'stalled' at the 3k view mark because we have 0 comments; the algorithm sees no 'community heat' to justify a 10k+ push.",
+    "engagement_diagnosis": "The 'Wait for #1' and 'Did #2 Rob #1' gimmicks are officially dead for this audience. They are ignoring the bait. To fix the 0.000% comment rate, we must pivot from 'ranking' to 'verifying.' We need to challenge the viewer's logic or ask for a specific personal anecdote related to the visual.",
+    "peak_timing_insight": "The 19:15 WAT window is our 'Golden Hour.' It perfectly captures the Nigerian evening peak while hitting the US East Coast at 2:15 PM (late lunch/afternoon slump) and the US West Coast at 11:15 AM (pre-lunch scroll). This dual-continent synchronization is why the US and Nigeria are our top two drivers.",
+    "ranking_tactic": "The 'Logic-Defying Progression.' Instead of a subjective ranking, we will present 5 clips that get progressively more 'impossible' to explain, moving from 'Lucky' to 'Glitch in the Matrix.' This forces the viewer to debate the authenticity of the final clip in the comments.",
+    "editing_pacing_sec": 10.2,
+    "packaging_directive": "Title: '5 Clips That Actually Defy Physics' | Description: 'The third one shouldn't even be possible. Which of these looks the most like a glitch to you? #Shorts #Physics #Mystery' | This avoids all previous 'Ranking' and 'Robbed' tropes and uses a direct question to break the 0-comment streak.",
+    "total_runtime_target": 51.0,
+    "like_rate_pct": 1.36,
+    "comment_rate_pct": 0.0,
+    "active_model": "gemini-3-flash-preview"
+  },
+  "viral_queries": [
+    "instant karma caught on camera",
+    "showboating gone wrong funny",
+    "instant justice moment",
+    "karma hit immediately clip"
+  ],
+  "failures": [
+    {
+      "url": "https://www.tiktok.com/@aifunnytok/video/7569311494756699423",
+      "reason": "duration 65.9s outside bounds (5.0-65.0s)"
+    },
+    {
+      "url": "https://www.tiktok.com/@karen.cam5/video/7603044678707072286",
+      "reason": "ERROR: [TikTok] 7603044678707072286: Your IP address is blocked from accessing this post"
+    },
+    {
+      "url": "https://www.tiktok.com/@karencam57/video/7585197277497609502",
+      "reason": "rejected: compilation"
+    },
+    {
+      "url": "https://www.tiktok.com/@clipsy.mike/video/7575335006499851551",
+      "reason": "ERROR: [TikTok] 7575335006499851551: This post may not be comfortable for some audiences. Log in for access. Use --cookies-from-browser or --cookies for the aut"
+    },
+    {
+      "url": "https://www.tiktok.com/@hope.every/video/7623070707534122270",
+      "reason": "skipped or empty after yt-dlp match_filter"
+    },
+    {
+      "url": "https://www.tiktok.com/@davisfact/video/7220104009829420290",
+      "reason": "rejected: compilation"
+    },
+    {
+      "url": "https://www.tiktok.com/@y.pictures/video/7531303017157610760",
+      "reason": "rejected: compilation"
+    },
+    {
+      "url": "https://www.tiktok.com/@top540987/video/7627154548313853206",
+      "reason": "skipped or empty after yt-dlp match_filter"
+    },
+    {
+      "url": "https://www.tiktok.com/@y.pictures/video/7531995543224978706",
+      "reason": "skipped or empty after yt-dlp match_filter"
+    },
+    {
+      "url": "https://www.tiktok.com/@combatsportcity/video/7362746545625779489",
+      "reason": "rejected: compilation"
+    }
+  ],
+  "candidates": 30,
+  "scored": 7,
+  "video": "/home/runner/work/aat-bot/aat-bot/data/output/master_youtube_shorts.mp4",
+  "final_title": "That Puddle Splash Backfire Was Personal #Shorts",
+  "segments": [
+    {
+      "rank": 5,
+      "rank_label": "Failed Back Jump",
+      "what_happens": "A man attempts a surprise jump onto his fianc\u00e9e's back but slips and falls violently onto the floor.",
+      "start_sec": 12.5,
+      "duration": 10.7,
+      "raw_duration": 27.3
+    },
+    {
+      "rank": 4,
+      "rank_label": "E-Bike Rammed",
+      "what_happens": "Police use a tactical car ram to stop a phone thief on an e-bike, ending the chase instantly.",
+      "start_sec": 0.7,
+      "duration": 12.0,
+      "raw_duration": 48.46
+    },
+    {
+      "rank": 3,
+      "rank_label": "Runaway Car",
+      "what_happens": "A driver exits his car to confront another after a collision, only for his car to roll away.",
+      "start_sec": 0.5,
+      "duration": 11.7,
+      "raw_duration": 22.133333
+    },
+    {
+      "rank": 2,
+      "rank_label": "Puddle Karma",
+      "what_happens": "A cocky driver splashes an elderly woman and laughs, only to get drenched by a massive puddle splash.",
+      "start_sec": 8.12,
+      "duration": 12.0,
+      "raw_duration": 20.125
+    },
+    {
+      "rank": 1,
+      "rank_label": "Showboat KO",
+      "what_happens": "Anderson Silva repeatedly taunts and mocks Chris Weidman with his hands down until getting caught by a knockout punch.",
+      "start_sec": 16.7,
+      "duration": 12.0,
+      "raw_duration": 60.433333
+    }
+  ]
+}

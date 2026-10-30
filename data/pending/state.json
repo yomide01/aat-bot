@@ -1,5 +1,5 @@
 {
-  "status": "awaiting",
+  "status": "rejected",
   "run_id": "41091047594",
   "artifact": "aat-pending",
   "topic": "That Puddle Splash Backfire Was Personal #Shorts",
@@ -140,9 +140,9 @@
   ],
   "category_id": "23",
   "video_name": "master_youtube_shorts.mp4",
-  "tg_offset": 556777440,
+  "tg_offset": 556777441,
   "video_id": "",
   "url": "",
-  "updated": "2026-10-30 16:47:36 UTC",
-  "updated_ts": 1793378856
+  "updated": "2026-10-30 16:54:24 UTC",
+  "updated_ts": 1793379264
 }

@@ -1,5 +1,5 @@
 {
-  "status": "awaiting",
+  "status": "rejected",
   "run_id": "41119345638",
   "artifact": "aat-pending",
   "topic": "5 Times The Cameraman Completely Lost It Laughing #Shorts",
@@ -301,9 +301,9 @@
   ],
   "category_id": "23",
   "video_name": "master_youtube_shorts.mp4",
-  "tg_offset": 556777442,
+  "tg_offset": 556777443,
   "video_id": "",
   "url": "",
-  "updated": "2026-10-30 20:01:20 UTC",
-  "updated_ts": 1793390480
+  "updated": "2026-10-30 20:15:32 UTC",
+  "updated_ts": 1793391332
 }

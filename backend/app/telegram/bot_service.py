@@ -10,6 +10,7 @@ from ..core.config import settings, DATA_DIR, OUTPUT_DIR
 from ..core.logger import logger
 from ..posting.youtube_api import YouTubeShortsClient
 from ..ai.creator_brain import MODEL_POOL, GeminiCreatorBrain
+from ..sourcing.funny_scorer import ordered_active_models, record_model_error
 from ..orchestrator.approval import (
     connect_youtube,
     youtube_login_instructions,
@@ -81,7 +82,7 @@ class TelegramInteractiveBot:
             return False
 
     def format_live_analytics(self) -> str:
-        """Pulls full channel & per-video telemetry from YouTube Data API v3 & YouTube Analytics API v2."""
+        """Pulls full channel & per-video telemetry in a sleek, summarized yet well-detailed studio report."""
         stats = self.youtube_client.fetch_channel_analytics(days=90)
         if not stats.get("connected"):
             return "⚠️ YouTube channel is not connected yet. Send `/login` to connect!"
@@ -90,61 +91,50 @@ class TelegramInteractiveBot:
         countries = stats.get("top_countries") or []
 
         lines = [
-            f"📊 *LIVE YOUTUBE ANALYTICS — {stats.get('channel_title')} ({stats.get('handle', '')})*",
-            "",
-            f"• *Subscribers:* {stats.get('subscribers', 0):,}",
-            f"• *Total Live Catalog Views:* {stats.get('total_views', 0):,}",
-            f"• *Published Shorts:* {stats.get('total_videos', 0)}",
-            f"• *Best Upload Window (WAT):* {stats.get('best_upload_window_wat', '16:30 - 19:30 WAT')}",
+            f"📊 *AAT STUDIO — {stats.get('channel_title')} ({stats.get('handle', '')})*",
+            "━━━━━━━━━━━━━━━━━━",
+            f"👥 *Subs:* {stats.get('subscribers', 0):,}  •  👁️ *Views:* {stats.get('total_views', 0):,}  •  🎬 *Shorts:* {stats.get('total_videos', 0)}",
+            f"⏰ *Prime Window:* {stats.get('best_upload_window_wat', '16:30 – 19:30 WAT')}",
         ]
         if rep:
-            lines.extend([
-                "",
-                "📈 *YouTube Analytics API v2 Deep Metrics:*",
-                f"• *Tracked Views:* {rep.get('views', 0):,} | *Watch Time:* {rep.get('estimatedMinutesWatched', 0):,} mins",
-                f"• *Avg View Duration:* {rep.get('averageViewDuration', 0)}s | *Avg View %:* {float(rep.get('averageViewPercentage') or 0):.1f}%",
-                f"• *Likes:* {rep.get('likes', 0)} | *Comments:* {rep.get('comments', 0)} | *Shares:* {rep.get('shares', 0)}",
-            ])
+            lines.append(
+                f"⏱️ *Watch Time:* {rep.get('estimatedMinutesWatched', 0):,}m  •  "
+                f"🎯 *Retention:* {float(rep.get('averageViewPercentage') or 0):.1f}% ({rep.get('averageViewDuration', 0)}s)"
+            )
+            lines.append(
+                f"👍 *Likes:* {rep.get('likes', 0)}  •  💬 *Comments:* {rep.get('comments', 0)}  •  🔁 *Shares:* {rep.get('shares', 0)}"
+            )
         if traffic:
-            tr_str = " | ".join(f"{t['source']}: {t['share_pct']}%" for t in traffic[:4])
-            lines.append(f"• *Traffic Sources:* {tr_str}")
+            tr_str = " • ".join(f"{t['source']} {t['share_pct']}%" for t in traffic[:3])
+            lines.append(f"📡 *Traffic:* {tr_str}")
         if countries:
-            ct_str = " | ".join(f"{c['country']}: {c['share_pct']}% (AVP {c['avg_view_pct']}%)" for c in countries[:4])
-            lines.append(f"• *Top Audience Countries:* {ct_str}")
+            ct_str = " • ".join(f"{c['country']} {c['share_pct']}%" for c in countries[:3])
+            lines.append(f"🌍 *Audience:* {ct_str}")
 
         recent = stats.get("recent_videos") or []
         if recent:
-            lines.append(f"\n🎬 *Complete Published Video Catalog ({len(recent)} Shorts):*")
-            for v in recent[:10]:
-                avp_tag = f" | 🎯 {v.get('avg_view_pct')}% AVP" if v.get("avg_view_pct") else ""
+            lines.append(f"\n🏆 *PUBLISHED SHORTS ({len(recent)})*")
+            for v in recent[:8]:
+                avp_tag = f" • {v.get('avg_view_pct')}% AVP" if v.get("avg_view_pct") else ""
                 lines.append(
-                    f"• *{v.get('title')}* ({v.get('duration_sec', 0)}s)\n"
-                    f"  🕒 {v.get('published_wat')} | 🏷️ {v.get('algo_tier')}\n"
-                    f"  👁️ {v.get('views', 0):,} views ({v.get('velocity_vph', 0)}/hr) | 👍 {v.get('likes', 0)} ({v.get('like_rate_pct', 0)}%) | 💬 {v.get('comments', 0)}{avp_tag}\n"
-                    f"  🔗 {v.get('url')}"
+                    f"▸ *{v.get('title')[:48]}* ({v.get('duration_sec', 0)}s)\n"
+                    f"   👁️ {v.get('views', 0):,} ({v.get('velocity_vph', 0)}/hr) • 👍 {v.get('likes', 0)} ({v.get('like_rate_pct', 0)}%){avp_tag}"
                 )
         try:
             diag = GeminiCreatorBrain().analyze_channel_and_evolve_strategy(stats)
             lines.extend([
                 "",
-                f"🧠 *AI FORENSIC CHANNEL DIAGNOSIS ({diag.get('active_model', 'Gemini 3.8')}):*",
-                f"• *Algorithm & Seed Status:* {diag.get('shadowban_or_seed_status', '')}",
-                f"• *Why Top Video Won:* {diag.get('viral_vs_stalled_reason', '')}",
-                f"• *Conversion & Comment Diagnosis:* {diag.get('engagement_diagnosis', '')}",
-                f"• *Peak Timing Insight (WAT vs US):* {diag.get('peak_timing_insight', '')}",
-                f"• *Next Build Adaptation:* {diag.get('ranking_tactic', '')} (~{diag.get('editing_pacing_sec', 9.5)}s/clip)",
+                f"🧠 *AI STRATEGY BRIEF ({diag.get('active_model', 'Gemini 3')})*",
+                f"• *Status:* {diag.get('shadowban_or_seed_status', '')}",
+                f"• *Growth Lever:* {diag.get('engagement_diagnosis', '')}",
+                f"• *Next Tactic:* {diag.get('ranking_tactic', '')}",
             ])
-            autopsies = diag.get("per_video_autopsy") or []
-            if autopsies:
-                lines.append("\n🔬 *Per-Video Autopsy:*")
-                for a in autopsies[:5]:
-                    lines.append(f"• *{a.get('title', '')[:48]}:* {a.get('verdict', '')}")
         except Exception:
             pass
         return "\n".join(lines)
 
     def ask_gemini_copilot(self, user_prompt: str) -> str:
-        """Consults the Gemini 3.8 / 3.7 / 3.6 / 3.5 Flash model pool with live YouTube channel analytics."""
+        """Consults the Gemini 3.x Flash model pool with live YouTube channel analytics."""
         self._load_state()
         latest_yt = self.state.get("latest_youtube") or self.state.get("latest_video") or {}
         live_stats = self.youtube_client.fetch_channel_analytics(days=90)
@@ -160,11 +150,9 @@ class TelegramInteractiveBot:
         )
 
         system_instruction = (
-            "You are AAT (Autonomous YouTube Shorts Viral Engine) Co-Pilot, an elite, witty, internet-native AI video director. "
-            "You are chatting directly with your creator/owner on Telegram. "
-            "You have direct access to their live YouTube Data API v3 & YouTube Analytics API v2 telemetry (every published video, views, velocity, watch time, retention %, traffic sources, top countries, likes, comments, subscribers) "
-            "and full details on every single-scene clip compiled into their Shorts. "
-            "Answer their questions accurately using the real data below, and keep replies concise and conversational.\n"
+            "You are AAT Studio Co-Pilot, an elite, sharp, stylish AI YouTube Shorts Director chatting with your creator on Telegram. "
+            "STYLE RULE: Keep every response short, summarized yet well-detailed, clean, elegant, and stylish using crisp bullet points and clean headers. "
+            "Never write bloated walls of text. Ground every answer in the real telemetry and clip data below:\n"
             f"{context_summary}"
         )
 
@@ -178,24 +166,26 @@ class TelegramInteractiveBot:
                 }
             ],
             "generationConfig": {
-                "temperature": 0.65,
-                "maxOutputTokens": 700,
+                "temperature": 0.55,
+                "maxOutputTokens": 450,
             },
         }
 
-        for model_name in MODEL_POOL:
+        for model_name in ordered_active_models():
             url = f"https://generativelanguage.googleapis.com/v1beta/models/{model_name}:generateContent"
             try:
                 with httpx.Client(timeout=25.0, headers={"x-goog-api-key": self.gemini_api_key}) as client:
                     resp = client.post(url, json=payload)
                     if resp.status_code in (429, 500, 503, 404):
+                        record_model_error(model_name, resp.status_code, resp.text[:500])
                         continue
                     data = resp.json()
                     if "candidates" in data and len(data["candidates"]) > 0:
                         return data["candidates"][0]["content"]["parts"][0]["text"]
-            except Exception:
+            except Exception as exc:
+                record_model_error(model_name, 0, str(exc))
                 continue
-        return "🤖 I'm here! Send `/create` to build a new YouTube Short, `/analytics` for full per-video diagnosis, or `/sources` to inspect the clips."
+        return "⚡ *AAT Studio Online* — Send `/create` to build a Short, `/analytics` for channel insights, or `/sources` to view clip breakdown."
 
     def _manual_file(self) -> Path:
         return DATA_DIR / "manual_clips.json"

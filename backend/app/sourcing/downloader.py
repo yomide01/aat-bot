@@ -15,7 +15,12 @@ from .rights import check_clip, normalize_license
 
 COMPILATION_CHECK_RE = re.compile(
     r"\b(compilation|compilations|top\s*5|top\s*10|ranking\s+video|try\s+not\s+to\s+laugh|"
-    r"mashup|montage|full\s+episode|podcast|livestream)\b",
+    r"mashup|montage|full\s+episode|podcast|livestream|part\s*1|part\s*2|storytime)\b",
+    re.I,
+)
+
+BORING_NEWS_CHANNEL_RE = re.compile(
+    r"\b(thesun|dailymail|tcrreports|skynews|bbcnews|cnn|insideedition|lawandcrime|itvnews|abcnews|cbsnews|nbcnews)\b",
     re.I,
 )
 
@@ -28,22 +33,30 @@ def download_clip(candidate: Dict[str, Any], name: str, max_height: int = 1080) 
             clip = {**candidate, "duration": probe_duration(p) or candidate.get("duration_sec", 6.0)}
             return clip, "ok"
 
+    url_str = str(candidate.get("url", ""))
+    if BORING_NEWS_CHANNEL_RE.search(url_str):
+        return None, "skipped news/tabloid channel"
+
     # 2. TikTok (Primary) or Original YouTube Video (Fallback) via yt-dlp
     import yt_dlp
     dest_path = CLIPS_DIR / f"{name}.mp4"
     if dest_path.exists():
         dest_path.unlink()
 
-    is_youtube = "youtube.com" in str(candidate.get("url", "")) or "youtu.be" in str(candidate.get("url", ""))
-    max_allowed_dur = 120.0 if is_youtube else 65.0
+    is_youtube = "youtube.com" in url_str or "youtu.be" in url_str
+    # TikTok clips: 5.0s to 28.0s so the entire setup -> climax -> reaction fits naturally without chopping!
+    max_allowed_dur = 45.0 if is_youtube else 28.0
 
     def _match_filter(info_dict, *, incomplete=False):
         dur = info_dict.get("duration")
         if dur is not None and (dur < 5.0 or dur > max_allowed_dur):
-            return f"Duration {dur}s outside single-clip range (5.0-{max_allowed_dur}s)"
+            return f"Duration {dur}s outside complete-scene range (5.0-{max_allowed_dur}s)"
         title = str(info_dict.get("title") or "")
+        uploader = str(info_dict.get("uploader") or info_dict.get("channel") or "")
         if COMPILATION_CHECK_RE.search(title):
-            return "Skipped compilation/ranking video"
+            return "Skipped compilation/ranking/part-1 video"
+        if BORING_NEWS_CHANNEL_RE.search(uploader):
+            return "Skipped news/tabloid channel"
         return None
 
     opts: Dict[str, Any] = {

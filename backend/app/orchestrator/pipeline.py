@@ -66,7 +66,7 @@ class ViralVideoPipeline:
         scored: List[Dict[str, Any]] = []
 
         for i, cand in enumerate(candidates):
-            if len(scored) >= count + 2:
+            if len(scored) >= count + 1:
                 break
             cand_keys = self._clip_fingerprints(cand)
             if cand_keys & seen_vault:
@@ -185,21 +185,20 @@ class ViralVideoPipeline:
             strategy_directives=strategy_directives,
         )
 
-        ranked = []
-        new_dedup_keys: List[str] = []
-        for idx, c in enumerate(curated):
-            raw_dur = float(c.get("duration") or 8.5)
-            start_s = float(c.get("start_sec") or 0.0)
-            ideal_dur = float(c.get("trim_duration") or max(segment_sec, 8.0))
-            if raw_dur <= 13.0:
-                final_dur = max(4.5, raw_dur - start_s)
+        curated_ids = {id(c) for c in curated}
+        reserves = [c for c in scored if id(c) not in curated_ids and c.get("filepath") not in {x.get("filepath") for x in curated}]
+
+        def _format_ranked_item(c: Dict[str, Any], rank_num: int) -> Dict[str, Any]:
+            raw_dur = float(c.get("duration") or 10.0)
+            if raw_dur <= 18.0:
+                start_s = 0.0
+                final_dur = round(raw_dur, 2)
             else:
-                final_dur = min(max(ideal_dur, 7.5), max(4.5, raw_dur - start_s))
-            for k in c.get("dedup_keys") or self._clip_fingerprints(c):
-                if k not in new_dedup_keys:
-                    new_dedup_keys.append(k)
-            ranked.append({
-                "rank": int(c.get("rank", count - idx)),
+                start_s = float(c.get("start_sec") or 0.0)
+                ideal_dur = float(c.get("trim_duration") or (raw_dur - start_s))
+                final_dur = round(min(max(ideal_dur, 6.5), max(5.0, raw_dur - start_s)), 2)
+            return {
+                "rank": int(rank_num),
                 "video_id": c.get("video_id", ""),
                 "title": c["title"],
                 "rank_label": (c.get("rank_label") or c.get("punchline") or c["title"])[:20],
@@ -219,11 +218,23 @@ class ViralVideoPipeline:
                 "funny_score": c["funny_score"],
                 "license": c["license"],
                 "credit": c.get("credit", ""),
-            })
+            }
+
+        ranked = []
+        new_dedup_keys: List[str] = []
+        for idx, c in enumerate(curated):
+            for k in c.get("dedup_keys") or self._clip_fingerprints(c):
+                if k not in new_dedup_keys:
+                    new_dedup_keys.append(k)
+            ranked.append(_format_ranked_item(c, int(c.get("rank", count - idx))))
+
+        formatted_reserves = [_format_ranked_item(r, 0) for r in reserves]
+
         res = self.compile_authentic_ranking_video(
             niche=niche,
             topic=topic,
             clips=ranked,
+            reserve_clips=formatted_reserves,
             used_titles=used_titles,
             strategy_directives=strategy_directives,
             output_filename=output_filename,
@@ -238,12 +249,14 @@ class ViralVideoPipeline:
         niche: str,
         topic: str,
         clips: List[Dict[str, Any]],
+        reserve_clips: Optional[List[Dict[str, Any]]] = None,
         used_titles: Optional[List[str]] = None,
         strategy_directives: Optional[Dict[str, Any]] = None,
         output_filename: str = "master_youtube_shorts.mp4",
         dispatch_telegram: bool = True,
     ) -> Dict[str, Any]:
         final_master = OUTPUT_DIR / output_filename
+        reserves_pool = list(reserve_clips or [])
 
         missing = [
             item.get("title", f"clip #{i}")
@@ -289,30 +302,46 @@ class ViralVideoPipeline:
             ranked_clips=clips,
         )
 
-        # Active Self-Healing Director Gate: If QA detects any clip cut off early or a mismatched label, fix & re-render!
+        # Active Self-Healing Director Gate: Fix missing setups, early cuts, weak clips, or label mismatches!
+        missing_setup_ranks = {int(r) for r in (qa_result.get("missing_setup_ranks") or []) if str(r).isdigit()}
         early_ranks = {int(r) for r in (qa_result.get("early_cut_ranks") or []) if str(r).isdigit()}
+        boring_ranks = {int(r) for r in (qa_result.get("boring_or_weak_ranks") or []) if str(r).isdigit()}
         label_fixes = {str(k): str(v) for k, v in (qa_result.get("label_fixes") or {}).items() if v}
-        if early_ranks or label_fixes:
+
+        if missing_setup_ranks or early_ranks or boring_ranks or label_fixes:
             logger.info(
                 f"[bold yellow]Self-Healing Director Gate Triggered:[/bold yellow] "
-                f"EarlyCutRanks={sorted(early_ranks)} | LabelFixes={label_fixes} -> Extending payoff windows & re-rendering!"
+                f"MissingSetup={sorted(missing_setup_ranks)} | EarlyCut={sorted(early_ranks)} | "
+                f"Boring={sorted(boring_ranks)} | LabelFixes={label_fixes}"
             )
             modified = False
-            for c in clips:
+            for idx, c in enumerate(clips):
                 r_num = int(c.get("rank", 0))
+                if r_num in boring_ranks and reserves_pool:
+                    replacement = dict(reserves_pool.pop(0))
+                    replacement["rank"] = r_num
+                    clips[idx] = replacement
+                    modified = True
+                    continue
                 if str(r_num) in label_fixes:
                     c["rank_label"] = label_fixes[str(r_num)][:20].strip()
                     modified = True
-                if r_num in early_ranks:
-                    raw_d = float(c.get("raw_duration") or c.get("duration") or 10.0)
-                    if raw_d <= 14.0:
-                        c["start_sec"] = 0.0
-                        c["duration"] = raw_d
-                    else:
-                        c["start_sec"] = max(0.0, raw_d - 12.5)
-                        c["duration"] = raw_d - c["start_sec"]
+                raw_d = float(c.get("raw_duration") or c.get("duration") or 12.0)
+                if r_num in missing_setup_ranks and r_num in early_ranks:
+                    c["start_sec"] = 0.0
+                    c["duration"] = min(23.0, raw_d)
                     modified = True
+                elif r_num in missing_setup_ranks:
+                    old_end = min(raw_d, float(c.get("start_sec", 0.0)) + float(c.get("duration", 10.0)))
+                    c["start_sec"] = 0.0
+                    c["duration"] = min(23.0, max(old_end, min(raw_d, 15.0)))
+                    modified = True
+                elif r_num in early_ranks:
+                    c["duration"] = round(max(6.0, raw_d - float(c.get("start_sec", 0.0))), 2)
+                    modified = True
+
             if modified:
+                credits_str = credit_line(clips)
                 self.compiler.assemble_full_ranking_video(
                     title=banner_header,
                     clips=clips,

@@ -135,18 +135,19 @@ SUB_NICHES: List[Dict[str, Any]] = [
     },
     {
         "id": "instant_karma",
-        "label": "Instant Karma Caught on Camera",
-        "topic": "Ranking Instant Karma Moments That Hit Immediately",
+        "label": "Hilarious Instant Karma & Backfires",
+        "topic": "Ranking Funny Instant Karma Moments",
         "vibe": "instant_karma",
         "vibe_rules": (
-            "MUST show someone acting cocky, showboating, or doing something foolish followed immediately by instant karma."
+            "MUST show both the funny/cocky setup (what the person did) AND the hilarious instant karma backfire/reaction. "
+            "MUST be genuinely funny and entertaining—strictly REJECT serious police chases, grim news reports, or violent street fights."
         ),
         "category_id": "23",
         "viral_queries": [
-            "instant karma caught on camera",
-            "showboating gone wrong funny",
-            "instant justice moment",
-            "karma hit immediately clip",
+            "funny instant karma fail",
+            "hilarious showboating gone wrong",
+            "prank backfire funny instant karma",
+            "cocky celebration fail funny",
         ],
     },
     {

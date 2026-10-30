@@ -304,19 +304,19 @@ def format_status_summary(state: Dict[str, Any], token: str) -> str:
     yt_client = YouTubeShortsClient()
     ch = yt_client.query_channel_info()
     yt_ok = bool(ch.get("title") or yt_client.access_token or yt_client.refresh_token)
-    ch_label = f"✅ Connected ({ch.get('title')} {ch.get('handle', '')})" if ch.get("title") else ("✅ Connected" if yt_ok else "⚠️ Not connected yet (/login)")
+    ch_label = f"✅ {ch.get('title')} ({ch.get('handle', '')})" if ch.get("title") else ("✅ Connected" if yt_ok else "⚠️ Not connected (/login)")
 
     lines = [
-        "📊 AAT YOUTUBE SHORTS ENGINE STATUS",
-        "",
-        f"• YouTube Channel: {ch_label}",
-        f"• Subscribers: {ch.get('subscribers', 0)} | Total Views: {ch.get('views', 0)} | Videos: {ch.get('videos', 0)}",
-        f"• Queue State: {state.get('status', 'idle').upper()}",
+        "⚡ AAT STUDIO — SYSTEM STATUS",
+        "━━━━━━━━━━━━━━━━━━",
+        f"📺 Channel: {ch_label}",
+        f"📈 Stats: {ch.get('subscribers', 0):,} subs • {ch.get('views', 0):,} views • {ch.get('videos', 0)} Shorts",
+        f"🚦 Queue: {state.get('status', 'idle').upper()}",
     ]
     if state.get("topic"):
-        lines.append(f"• Latest Short ('{state.get('topic')}'): {state.get('status', 'idle')}")
+        lines.append(f"🎬 Latest: {state.get('topic')} ({state.get('status', 'idle')})")
     if state.get("url"):
-        lines.append(f"• Published Link: {state.get('url')}")
+        lines.append(f"🔗 Live URL: {state.get('url')}")
     return "\n".join(lines)
 
 
@@ -429,7 +429,6 @@ def _drain(
                 _ack(inbox, cb_id, text=toast)
                 state["tg_offset"] = inbox.offset
                 _apply_youtube_action(action, state, inbox, token, local_video=local_video)
-                save_state(state, token)
                 return True
             elif action == "ack":
                 _ack(inbox, cb_id, text="Received!")
@@ -469,10 +468,13 @@ def announce(wait_min: int) -> None:
         "topic": job.get("topic", "Top 5 Viral Moments #Shorts"),
         "banner_title": job.get("banner_title", "TOP 5 MOMENTS"),
         "niche": job.get("niche", "epic_fails"),
+        "subniche_label": job.get("subniche_label", ""),
         "recent_subniches": job.get("recent_subniches") or prev_state.get("recent_subniches") or [],
         "used_clip_ids": job.get("used_clip_ids") or prev_state.get("used_clip_ids") or [],
         "used_titles": job.get("used_titles") or prev_state.get("used_titles") or [],
         "strategy_diagnosis": job.get("strategy_diagnosis") or prev_state.get("strategy_diagnosis") or {},
+        "qa_review": job.get("qa_review") or {},
+        "ranked_plan": job.get("ranked_plan") or [],
         "caption": job.get("caption", ""),
         "credits": job.get("credits", ""),
         "tags": job.get("tags") or [],
@@ -490,6 +492,10 @@ def announce(wait_min: int) -> None:
         caption=state["caption"],
         hook=state["banner_title"],
         target_platform="youtube",
+        niche_label=state.get("subniche_label") or state.get("niche", ""),
+        ranked_clips=state.get("ranked_plan") or [],
+        qa_review=state.get("qa_review") or {},
+        strategy_diagnosis=state.get("strategy_diagnosis") or {},
     )
     if not (isinstance(sent, dict) and sent.get("ok")):
         inbox.send("⚠️ Telegram refused the video upload. It is saved; reply 'approve' to publish it to YouTube Shorts.")

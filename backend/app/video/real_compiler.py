@@ -238,7 +238,7 @@ class ViralRealCompiler:
                 "-map", "0:a:0",
                 "-af", filter_a,
                 "-c:v", "libx264",
-                "-preset", "fast",
+                "-preset", "veryfast",
                 "-crf", "19",
                 "-r", "30",
                 "-pix_fmt", "yuv420p",
@@ -266,7 +266,7 @@ class ViralRealCompiler:
                 "-map", "[outv]",
                 "-map", "2:a:0",
                 "-c:v", "libx264",
-                "-preset", "fast",
+                "-preset", "veryfast",
                 "-crf", "19",
                 "-r", "30",
                 "-pix_fmt", "yuv420p",
@@ -293,10 +293,9 @@ class ViralRealCompiler:
         clips: List[Dict[str, Any]],
         output_path: Path,
     ) -> Path:
-        segment_files: List[Path] = []
-        total_items = len(clips)
+        from concurrent.futures import ThreadPoolExecutor
 
-        # Build the map of rank -> short 2-3 word label for the progressive 1-5 ranking tower
+        total_items = len(clips)
         rank_labels: Dict[int, str] = {}
         for item in clips:
             r_num = int(item.get("rank", 1))
@@ -309,12 +308,12 @@ class ViralRealCompiler:
             )
             rank_labels[r_num] = str(lbl).strip()[:20]
 
-        for idx, item in enumerate(clips):
+        def _render_one(idx_and_item):
+            idx, item = idx_and_item
             rank_num = int(item.get("rank", total_items - idx))
             clip_file = Path(item["filepath"])
             start_sec = float(item.get("start_sec", 0.0))
-            dur_sec = float(item.get("duration", 5.0))
-
+            dur_sec = float(item.get("duration", 8.0))
             banner_png = cls.render_top_banner(
                 main_title=title,
                 rank_number=rank_num,
@@ -322,7 +321,6 @@ class ViralRealCompiler:
                 rank_labels=rank_labels,
                 output_image=DATA_DIR / f"banner_rank_{idx}_{rank_num}.png",
             )
-
             seg_out = DATA_DIR / f"rank_segment_{idx}.mp4"
             cls.compile_moment_segment(
                 clip_path=clip_file,
@@ -331,7 +329,10 @@ class ViralRealCompiler:
                 start_time_sec=start_sec,
                 duration_sec=dur_sec,
             )
-            segment_files.append(seg_out)
+            return seg_out
+
+        with ThreadPoolExecutor(max_workers=2) as pool:
+            segment_files = list(pool.map(_render_one, enumerate(clips)))
 
         concat_list = DATA_DIR / "ranking_concat.txt"
         with open(concat_list, "w", encoding="utf-8") as f:
@@ -339,27 +340,40 @@ class ViralRealCompiler:
                 safe_path = str(seg.resolve()).replace("\\", "/")
                 f.write(f"file '{safe_path}'\n")
 
-        cmd = [
+        logger.info(f"Concatenating {len(segment_files)} ranked segments into {output_path.name}...")
+        fast_cmd = [
             "ffmpeg", "-y",
             "-f", "concat",
             "-safe", "0",
             "-i", str(concat_list),
-            "-c:v", "libx264",
-            "-preset", "fast",
-            "-crf", "19",
-            "-pix_fmt", "yuv420p",
-            "-c:a", "aac",
-            "-b:a", "192k",
+            "-c", "copy",
             "-movflags", "+faststart",
             "-map_metadata", "-1",
             "-map_chapters", "-1",
             str(output_path),
         ]
-        logger.info(f"Concatenating {len(segment_files)} ranked segments into {output_path.name}...")
-        res = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
-        if res.returncode != 0:
-            logger.error(f"Final concat failed: {res.stderr[-300:]}")
-            raise RuntimeError("Final video assembly failed")
+        res = subprocess.run(fast_cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+        if res.returncode != 0 or not output_path.exists() or output_path.stat().st_size < 50_000:
+            fallback_cmd = [
+                "ffmpeg", "-y",
+                "-f", "concat",
+                "-safe", "0",
+                "-i", str(concat_list),
+                "-c:v", "libx264",
+                "-preset", "veryfast",
+                "-crf", "19",
+                "-pix_fmt", "yuv420p",
+                "-c:a", "aac",
+                "-b:a", "192k",
+                "-movflags", "+faststart",
+                "-map_metadata", "-1",
+                "-map_chapters", "-1",
+                str(output_path),
+            ]
+            res = subprocess.run(fallback_cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+            if res.returncode != 0:
+                logger.error(f"Final concat failed: {res.stderr[-300:]}")
+                raise RuntimeError("Final video assembly failed")
 
         for seg in segment_files:
             seg.unlink(missing_ok=True)

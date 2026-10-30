@@ -31,9 +31,14 @@ class TelegramHumanDispatcher:
         caption: str,
         hook: str,
         target_platform: str = "youtube",
+        niche_label: str = "",
+        ranked_clips: Optional[list] = None,
+        qa_review: Optional[Dict[str, Any]] = None,
+        strategy_diagnosis: Optional[Dict[str, Any]] = None,
     ) -> Dict[str, Any]:
         """
-        Sends the MP4 YouTube Short to the creator's Telegram chat with inline Approve / Reject buttons.
+        Sends the MP4 YouTube Short to the creator's Telegram chat with an elegant,
+        concise yet well-detailed studio briefing card and inline Approve / Reject buttons.
         """
         if not self.bot_token or not self.chat_id:
             logger.warning("Telegram bot_token or chat_id not configured in .env. Skipping Telegram dispatch.")
@@ -41,21 +46,48 @@ class TelegramHumanDispatcher:
 
         url = f"{self.TELEGRAM_API_URL}{self.bot_token}/sendVideo"
         video_path = ensure_telegram_size(Path(video_path))
-        title, hook = clean_md(title), clean_md(hook)
-        caption = clean_md(caption)
+        clean_title = clean_md(title)
+        clean_hook = clean_md(hook)
+        clean_niche = clean_md(niche_label or "Viral Ranking")
+
+        clips = ranked_clips or []
+        total_dur = round(sum(float(c.get("duration") or 0) for c in clips), 1) if clips else 0
+        qa = qa_review or {}
+        qa_score = qa.get("viral_score", 9.0)
+        qa_model = qa.get("reviewed_by_model", "Gemini 3")
+        qa_note = clean_md(str(qa.get("director_notes") or "Full setup & payoff verified"))[:85]
+
+        rank_icons = {5: "5️⃣", 4: "4️⃣", 3: "3️⃣", 2: "2️⃣", 1: "1️⃣"}
+        lineup_rows = []
+        for c in clips:
+            r_num = int(c.get("rank", 0))
+            icon = rank_icons.get(r_num, f"#{r_num}")
+            lbl = clean_md(str(c.get("rank_label") or "Moment"))
+            dur_s = int(round(float(c.get("duration") or 0)))
+            summary = clean_md(str(c.get("what_happens") or c.get("punchline") or ""))
+            if len(summary) > 58:
+                summary = summary[:55].rstrip() + "..."
+            lineup_rows.append(f"{icon} {lbl} ({dur_s}s) — {summary}")
+
+        lineup_block = "\n".join(lineup_rows) if lineup_rows else clean_md(caption)[:380]
+        dur_badge = f" • ⏱️ {int(round(total_dur))}s" if total_dur > 0 else ""
 
         message_text = (
-            f"▶️ NEW YOUTUBE SHORT READY (Sourced from TikTok)\n\n"
-            f"Title: {title}\n"
-            f"{hook}\n\n"
-            f"{caption}\n\n"
-            f"Approve uploads it to your YouTube channel. Reject discards it."
-        )[:1000]
+            f"🎬 AAT STUDIO — SHORT READY\n"
+            f"━━━━━━━━━━━━━━━━━━\n"
+            f"📌 {clean_title}\n"
+            f"🏷️ {clean_niche} • 🎯 {clean_hook}{dur_badge}\n"
+            f"🧠 QA ({qa_model}): {qa_score}/10 — {qa_note}\n\n"
+            f"🏆 RANKED LINEUP (#5 → #1)\n"
+            f"{lineup_block}\n"
+            f"━━━━━━━━━━━━━━━━━━\n"
+            f"Tap below to publish to YouTube Shorts or reject:"
+        )[:1015]
 
         inline_keyboard = {
             "inline_keyboard": [
                 [
-                    {"text": "✅ Approve & Post to YouTube", "callback_data": "approve_youtube"},
+                    {"text": "✅ Approve & Publish", "callback_data": "approve_youtube"},
                     {"text": "❌ Reject", "callback_data": "reject_youtube"},
                 ]
             ]

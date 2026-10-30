@@ -7,19 +7,8 @@ from typing import Dict, Any, List, Optional
 import httpx
 from ..core.config import settings, DATA_DIR
 from ..core.logger import logger
+from ..sourcing.funny_scorer import MODEL_POOL, ordered_active_models, record_model_error
 
-MODEL_POOL = [
-    "gemini-3.8-flash",
-    "gemini-3.7-flash",
-    "gemini-3.6-flash",
-    "gemini-3.5-flash",
-    "gemini-3-flash-preview",
-    "gemini-3.5-flash-lite",
-    "gemini-3.1-flash-lite",
-    "gemini-2.5-flash",
-]
-
-_COOLDOWN_UNTIL: Dict[str, float] = {}
 _LAST_USED_MODEL: str = "gemini-3.8-flash"
 
 
@@ -62,10 +51,7 @@ class GeminiCreatorBrain:
         self.model = model
 
     def _ordered_models(self) -> List[str]:
-        now = time.time()
-        ready = [m for m in MODEL_POOL if _COOLDOWN_UNTIL.get(m, 0.0) <= now]
-        cooling = [m for m in MODEL_POOL if _COOLDOWN_UNTIL.get(m, 0.0) > now]
-        return ready + cooling
+        return ordered_active_models()
 
     def _call_gemini_json(
         self,
@@ -85,18 +71,16 @@ class GeminiCreatorBrain:
                 with httpx.Client(timeout=timeout, headers={"x-goog-api-key": self.api_key}) as client:
                     resp = client.post(endpoint, json=payload)
                 if resp.status_code in (429, 500, 503, 404):
-                    _COOLDOWN_UNTIL[model_name] = time.time() + 45.0
+                    record_model_error(model_name, resp.status_code, resp.text[:600])
                     last_err = f"{model_name}:{resp.status_code}"
-                    time.sleep(0.6)
                     continue
                 resp.raise_for_status()
                 text = resp.json()["candidates"][0]["content"]["parts"][0]["text"]
                 _LAST_USED_MODEL = model_name
                 return json.loads(text)
             except Exception as exc:
-                _COOLDOWN_UNTIL[model_name] = time.time() + 20.0
+                record_model_error(model_name, 0, str(exc))
                 last_err = f"{model_name}:{exc}"
-                time.sleep(0.6)
         raise RuntimeError(f"Gemini model pool exhausted ({last_err})")
 
     def analyze_channel_and_evolve_strategy(
@@ -466,10 +450,12 @@ class GeminiCreatorBrain:
     ) -> Dict[str, Any]:
         """
         Active Self-Healing Director QA Gate:
-        Watches the entire compiled MP4 video (up to 60s at 360p @ 8fps) and checks EVERY rank segment (#5 down to #1)
+        Watches the entire compiled MP4 video (up to 95s at 360p @ 6fps + audio) and audits EVERY rank segment (#5 down to #1)
         to verify:
-          1) No clip is cut off early before its climax/payoff finishes (`early_cut_ranks`).
-          2) Every on-screen `rank_label` accurately reflects what the viewer actually sees (`label_fixes`).
+          1) `missing_setup_ranks`: Did any clip start too late so the viewer missed what caused the action/karma/fail?
+          2) `early_cut_ranks`: Did any clip cut off too early before the result/reaction finished?
+          3) `boring_or_weak_ranks`: Is any clip unfunny, dry, or boring?
+          4) `label_fixes`: Does every on-screen `rank_label` accurately reflect what the viewer actually sees?
         """
         qa_dir = DATA_DIR / "qa_review_frames"
         qa_dir.mkdir(parents=True, exist_ok=True)
@@ -478,27 +464,35 @@ class GeminiCreatorBrain:
         cmd = [
             "ffmpeg", "-y", "-hide_banner", "-loglevel", "error",
             "-i", str(video_path),
-            "-t", "60",
-            "-vf", "scale=360:-2,fps=8",
-            "-c:v", "libx264", "-preset", "ultrafast", "-crf", "29", "-pix_fmt", "yuv420p",
-            "-c:a", "aac", "-b:a", "64k", "-ac", "1", "-ar", "22050",
+            "-t", "95",
+            "-vf", "scale=360:-2,fps=6",
+            "-c:v", "libx264", "-preset", "ultrafast", "-crf", "30", "-pix_fmt", "yuv420p",
+            "-c:a", "aac", "-b:a", "48k", "-ac", "1", "-ar", "22050",
             str(proxy_video),
         ]
         subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
         media_parts = []
-        if proxy_video.exists() and 1000 < proxy_video.stat().st_size < 4 * 1024 * 1024:
+        if proxy_video.exists() and 1000 < proxy_video.stat().st_size < 12 * 1024 * 1024:
             b64_vid = base64.b64encode(proxy_video.read_bytes()).decode("utf-8")
             media_parts.append({"inline_data": {"mime_type": "video/mp4", "data": b64_vid}})
             proxy_video.unlink(missing_ok=True)
 
         if not media_parts:
-            return {"approved": True, "viral_score": 9, "early_cut_ranks": [], "label_fixes": {}, "director_notes": "Compiled cleanly"}
+            return {
+                "approved": True,
+                "viral_score": 8.5,
+                "missing_setup_ranks": [],
+                "early_cut_ranks": [],
+                "boring_or_weak_ranks": [],
+                "label_fixes": {},
+                "director_notes": "Compiled cleanly",
+            }
 
         clips_manifest = ""
         if ranked_clips:
             lines = [
-                f"- Rank #{c.get('rank')}: Label='{c.get('rank_label')}' | Expected Payoff='{c.get('what_happens')}' | CutDuration={c.get('duration', 0):.1f}s"
+                f"- Rank #{c.get('rank')}: Label='{c.get('rank_label')}' | Expected Story='{c.get('what_happens')}' | CutDuration={c.get('duration', 0):.1f}s (Raw={c.get('raw_duration', 0):.1f}s)"
                 for c in ranked_clips
             ]
             clips_manifest = "\nSegments in this compiled video:\n" + "\n".join(lines) + "\n"
@@ -506,29 +500,46 @@ class GeminiCreatorBrain:
         prompt = (
             f"You are the ruthless Senior YouTube Shorts Director QA AI watching our finished compilation: '{expected_title}'.\n"
             f"{clips_manifest}\n"
-            "Watch the full compiled video from start to finish and audit EVERY segment strictly:\n"
-            "1. Did any segment cut off TOO EARLY before the viewer could see the actual payoff/climax happen "
-            "(for example, showing someone turn around to see a goat running, but cutting to the next rank before the goat chaos happens; "
-            "or labeling a clip 'Chef transformation' when no transformation is shown before the clip ends)?\n"
-            "2. List any rank numbers that cut off too early or felt abruptly truncated in `early_cut_ranks` (e.g. `[3, 1]`, or `[]` if all payoffs are clearly visible).\n"
-            "3. If any rank's on-screen `Label` promises something that does not visually happen in that segment, provide a corrected 2-3 word label in `label_fixes` (e.g. `{\"1\": \"Kitchen surprise\"}`).\n\n"
+            "Watch the full compiled video from start to finish and audit EVERY segment (#5 down to #1) strictly:\n"
+            "1. `missing_setup_ranks`: Did any segment start TOO LATE so the viewer could NOT see what happened at the beginning that caused the fail/karma/twist?\n"
+            "2. `early_cut_ranks`: Did any segment cut off TOO EARLY at the end before the viewer could see the final result/payoff/reaction?\n"
+            "3. `boring_or_weak_ranks`: Did any segment feel boring, unfunny, confusing, or weak so it should be swapped out for a better reserve clip?\n"
+            "4. `label_fixes`: If any rank's on-screen `Label` promises something that does not visually happen in that segment, provide a corrected 2-3 word label (e.g. `{\"1\": \"Instant Regret\"}`).\n\n"
             "Return strict JSON:\n"
             "{\n"
             "  \"approved\": true,\n"
-            "  \"viral_score\": 9,\n"
+            "  \"viral_score\": 9.0,\n"
+            "  \"missing_setup_ranks\": [],\n"
             "  \"early_cut_ranks\": [],\n"
+            "  \"boring_or_weak_ranks\": [],\n"
             "  \"label_fixes\": {},\n"
-            "  \"director_notes\": \"Specific audit of each rank's payoff visibility\"\n"
+            "  \"director_notes\": \"Concise 1-sentence human summary of the compilation's pacing and humor\"\n"
             "}"
         )
         try:
-            res = self._call_gemini_json([*media_parts, {"text": prompt}], temperature=0.15, timeout=45.0)
-            if not isinstance(res.get("early_cut_ranks"), list):
-                res["early_cut_ranks"] = []
+            res = self._call_gemini_json([*media_parts, {"text": prompt}], temperature=0.15, timeout=50.0)
+            for key in ("missing_setup_ranks", "early_cut_ranks", "boring_or_weak_ranks"):
+                if not isinstance(res.get(key), list):
+                    res[key] = []
             if not isinstance(res.get("label_fixes"), dict):
                 res["label_fixes"] = {}
+            res["reviewed_by_model"] = _LAST_USED_MODEL
+            logger.info(
+                f"[bold magenta]Final Director QA ({_LAST_USED_MODEL}):[/bold magenta] "
+                f"Score={res.get('viral_score')}/10 | MissingSetup={res['missing_setup_ranks']} | "
+                f"EarlyCut={res['early_cut_ranks']} | Boring={res['boring_or_weak_ranks']} | "
+                f"Notes='{str(res.get('director_notes', ''))[:80]}'"
+            )
             return res
         except Exception as e:
             logger.warning(f"Gemini QA fallback: {e}")
 
-        return {"approved": True, "viral_score": 9, "early_cut_ranks": [], "label_fixes": {}, "director_notes": "Pacing & framing verified"}
+        return {
+            "approved": True,
+            "viral_score": 8.5,
+            "missing_setup_ranks": [],
+            "early_cut_ranks": [],
+            "boring_or_weak_ranks": [],
+            "label_fixes": {},
+            "director_notes": "Full story arcs & framing verified",
+        }

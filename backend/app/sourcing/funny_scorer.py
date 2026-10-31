@@ -207,7 +207,13 @@ def score_clip_visually(
             "17. `why_rankworthy`: Why this clip earns a spot in a viral ranking video.\n"
             "18. `rank_label`: Sharp 2-3 word human label for the on-screen 1-5 list (max 18 chars) matching what is visually shown.\n"
             "19. `punchline`: Witty human creator remark (5-10 words).\n"
-            "20. `commentary`: One sharp sentence of human creator commentary.\n\n"
+            "20. `commentary`: One sharp sentence of human creator commentary.\n"
+            "21. `premise_shown` (boolean): The finished video will be titled exactly: "
+            f"'{theme}'. Answer `true` ONLY if the literal premise of that title visibly or audibly happens in THIS clip "
+            "(example: for 'the cameraman loses it laughing', the person filming must be audibly laughing so hard they cannot hold the camera still). "
+            "A similar mood, the same general category, or just being funny is `false`. Be strict: a viewer who reads that title must not feel misled by this clip.\n"
+            "22. `theme_fit` (0.0 to 10.0): How exactly this clip delivers the title's premise (10 = textbook example, 0 = unrelated).\n"
+            "23. `theme_evidence`: One sentence naming what you actually saw/heard that proves or disproves the premise.\n\n"
             "Return strict JSON:\n"
             "{\n"
             "  \"is_raw_single_clip\": true,\n"
@@ -229,7 +235,10 @@ def score_clip_visually(
             "  \"why_rankworthy\": \"...\",\n"
             "  \"rank_label\": \"...\",\n"
             "  \"punchline\": \"...\",\n"
-            "  \"commentary\": \"...\"\n"
+            "  \"commentary\": \"...\",\n"
+            "  \"premise_shown\": false,\n"
+            "  \"theme_fit\": 3.0,\n"
+            "  \"theme_evidence\": \"...\"\n"
             "}"
         )
         parts = [
@@ -247,6 +256,8 @@ def score_clip_visually(
         what_happens = str(res.get("what_happens") or "").strip()
         score = float(res.get("viral_score", 0.0))
         humor = float(res.get("humor_score", 0.0))
+        theme_fit = float(res.get("theme_fit", 0.0) or 0.0)
+        premise_shown = bool(res.get("premise_shown", False)) and theme_fit >= 7.0  # strict: both must agree
 
         if not is_raw:
             logger.info(f"[yellow]Rejected '{path.name}': Not a clean single clip ({what_happens[:60]})[/yellow]")
@@ -304,6 +315,9 @@ def score_clip_visually(
             "standout_detail": str(res.get("standout_detail") or "").strip(),
             "why_rankworthy": str(res.get("why_rankworthy") or "").strip(),
             "commentary": str(res.get("commentary") or "")[:110].strip(),
+            "premise_shown": premise_shown,
+            "theme_fit": theme_fit,
+            "theme_evidence": str(res.get("theme_evidence") or "").strip()[:200],
             "watched_by_model": used_model,
             "rejected": False,
         }

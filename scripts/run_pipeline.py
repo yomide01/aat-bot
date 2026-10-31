@@ -35,6 +35,13 @@ def _flush_report(report: dict) -> None:
         logger.warning(f"Could not write report: {exc}")
 
 
+def _cap_vault(keys: List[str]) -> List[str]:
+    """Newest first. IDs/URLs/creator keys and the (much more numerous) visual fingerprints are capped separately."""
+    plain = [k for k in keys if not k.startswith("vh:")][:2000]
+    visual = [k for k in keys if k.startswith("vh:")][:4000]
+    return list(dict.fromkeys(plain + visual))
+
+
 def prepare(niche: str, topic: str, count: int = 5) -> None:
     from backend.app.orchestrator.approval import load_state, save_state, is_state_stale, watch
     from backend.app.orchestrator.pipeline import ViralVideoPipeline
@@ -206,7 +213,7 @@ def prepare(niche: str, topic: str, count: int = 5) -> None:
         "niche": yt_niche,
         "subniche_label": sub_label,
         "recent_subniches": updated_recent,
-        "used_clip_ids": all_used_clips[:2000],
+        "used_clip_ids": _cap_vault(all_used_clips),
         "used_titles": all_used_titles[:300],
         "strategy_diagnosis": strategy,
         "qa_review": result.get("qa") or {},

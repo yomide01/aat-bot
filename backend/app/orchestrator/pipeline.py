@@ -10,6 +10,8 @@ from ..posting.youtube_api import YouTubeShortsClient
 from ..sourcing.downloader import download_clip
 from ..sourcing.funny_scorer import score_clip_visually
 from ..sourcing.rights import check_clip, credit_line
+from ..sourcing import fingerprint
+from ..ai import packaging_guard
 
 
 class ViralVideoPipeline:
@@ -62,11 +64,14 @@ class ViralVideoPipeline:
         """
         failures = failures if failures is not None else []
         seen_vault: Set[str] = set(used_clip_ids or set())
+        known_vh: Set[int] = fingerprint.vault_hashes(seen_vault)  # what past clips LOOKED like (catches re-uploads)
         seen_creators_in_run: Set[str] = set()
         scored: List[Dict[str, Any]] = []
 
         for i, cand in enumerate(candidates):
-            if len(scored) >= count + 1:
+            # Keep looking until we have enough clips that truly show the video's premise (or a fallback pool).
+            on_premise = sum(1 for c in scored if c.get("premise_shown"))
+            if on_premise >= count + 1 or len(scored) >= count + 4:
                 break
             cand_keys = self._clip_fingerprints(cand)
             if cand_keys & seen_vault:
@@ -86,6 +91,13 @@ class ViralVideoPipeline:
             if post_dl_keys & seen_vault:
                 Path(clip["filepath"]).unlink(missing_ok=True)
                 failures.append({"url": cand.get("url"), "reason": "skipped: duplicate creator+duration fingerprint"})
+                continue
+
+            # Same footage re-uploaded by another account / re-encoded / trimmed? IDs differ, pictures don't.
+            vh = fingerprint.frame_hashes(Path(clip["filepath"]))
+            if fingerprint.is_repeat(vh, known_vh):
+                Path(clip["filepath"]).unlink(missing_ok=True)
+                failures.append({"url": cand.get("url"), "reason": "skipped: same footage as a clip used before (visual match)"})
                 continue
 
             # Fair Use & Anti-Spam Rule: Never take more than 1 clip from the same creator in a single compilation
@@ -131,6 +143,7 @@ class ViralVideoPipeline:
                 continue
 
             seen_vault.update(post_dl_keys)
+            known_vh.update(int(h, 16) for h in vh)
             if creator_key:
                 seen_creators_in_run.add(creator_key)
             clip.update(
@@ -149,10 +162,39 @@ class ViralVideoPipeline:
                 standout_detail=res.get("standout_detail") or "",
                 why_rankworthy=res.get("why_rankworthy") or "",
                 commentary=res.get("commentary") or "",
-                dedup_keys=list(post_dl_keys),
+                dedup_keys=list(post_dl_keys) + fingerprint.keys(vh),
+                premise_shown=bool(res.get("premise_shown", False)),
+                theme_fit=float(res.get("theme_fit", 0.0) or 0.0),
+                theme_evidence=str(res.get("theme_evidence") or ""),
             )
             scored.append(clip)
-        return sorted(scored, key=lambda c: c["funny_score"], reverse=True)
+        # Clips that really show the premise first, then by score.
+        return sorted(scored, key=lambda c: (bool(c.get("premise_shown")), c["funny_score"]), reverse=True)
+
+    def _package_with_guard(self, niche, topic, clips, credits_str, trending_titles, used_titles, strategy) -> Dict[str, Any]:
+        """Writes the title/banner/description, then fact-checks it against what the clips really show.
+        Rewrites once with the problems listed; if it is still not truthful, uses a plain packaging built only from the clips."""
+        total = len(clips)
+        matching = sum(1 for c in clips if c.get("premise_shown"))
+        verified = total > 0 and matching == total
+        notes: List[str] = []
+        for attempt in range(2):
+            pk = self.brain.generate_dynamic_short_packaging(
+                niche_id=niche, seed_topic=topic, ranked_clips=clips, credits_text=credits_str,
+                trending_titles=trending_titles, used_titles=used_titles, strategy_directives=strategy,
+                premise_verified=verified, matching_count=matching, revision_notes=notes or None,
+            )
+            notes = packaging_guard.claim_issues(pk["video_title"], pk["banner_title"], topic, matching, total, verified)
+            if not notes:
+                chk = self.brain.verify_packaging_claims(pk["video_title"], pk["banner_title"], pk["description"], clips)
+                notes = [] if chk.get("ok", True) else list(chk.get("issues") or ["unspecified false claim"])
+            if not notes:
+                pk["guard"] = "passed" if attempt == 0 else "passed after rewrite"
+                return pk
+            logger.warning(f"Packaging rejected by fact-check (attempt {attempt + 1}): {notes}")
+        pk = packaging_guard.safe_packaging(niche, clips, self.brain.CATEGORY_MAP.get(niche, "23"))
+        pk["guard"] = "fallback: " + "; ".join(notes)[:200]
+        return pk
 
     def _fallback_score(self, clip: Dict[str, Any], topic: str) -> float:
         import re
@@ -178,15 +220,18 @@ class ViralVideoPipeline:
             raise RuntimeError(f"Only {len(scored)} usable original clips (need {count}).")
 
         sub_meta = subniche_info or {"id": niche, "label": topic}
+        on_premise = [c for c in scored if c.get("premise_shown")]
+        pool = on_premise if len(on_premise) >= count else scored  # prefer a lineup where every clip fits the title
         curated = self.brain.curate_and_rank_top_clips(
             sub_meta,
-            scored,
+            pool,
             count=count,
             strategy_directives=strategy_directives,
         )
 
         curated_ids = {id(c) for c in curated}
         reserves = [c for c in scored if id(c) not in curated_ids and c.get("filepath") not in {x.get("filepath") for x in curated}]
+        reserves.sort(key=lambda c: not c.get("premise_shown"))  # on-premise reserves get swapped in first
 
         def _format_ranked_item(c: Dict[str, Any], rank_num: int) -> Dict[str, Any]:
             raw_dur = float(c.get("duration") or 10.0)
@@ -218,6 +263,11 @@ class ViralVideoPipeline:
                 "funny_score": c["funny_score"],
                 "license": c["license"],
                 "credit": c.get("credit", ""),
+                "channel": c.get("channel", ""),
+                "dedup_keys": list(c.get("dedup_keys") or self._clip_fingerprints(c)),
+                "premise_shown": bool(c.get("premise_shown")),
+                "theme_fit": c.get("theme_fit"),
+                "theme_evidence": c.get("theme_evidence", ""),
             }
 
         ranked = []
@@ -240,8 +290,15 @@ class ViralVideoPipeline:
             output_filename=output_filename,
             dispatch_telegram=dispatch_telegram,
         )
+        # Remember what is REALLY in the final video. QA can swap a weak clip for a reserve during compile;
+        # previously the reserve was shown but never recorded, so it could come back in a later video.
+        final_clips = res.get("final_clips") or ranked
+        for c in final_clips:
+            for k in c.get("dedup_keys") or self._clip_fingerprints(c):
+                if k not in new_dedup_keys:
+                    new_dedup_keys.append(k)
         res["new_dedup_keys"] = new_dedup_keys
-        res["ranked_plan"] = ranked
+        res["ranked_plan"] = final_clips
         return res
 
     def compile_authentic_ranking_video(
@@ -270,15 +327,7 @@ class ViralVideoPipeline:
 
         credits_str = credit_line(clips)
         trending_titles = self.youtube_client.fetch_trending_topics()
-        packaging = self.brain.generate_dynamic_short_packaging(
-            niche_id=niche,
-            seed_topic=topic,
-            ranked_clips=clips,
-            credits_text=credits_str,
-            trending_titles=trending_titles,
-            used_titles=used_titles,
-            strategy_directives=strategy_directives,
-        )
+        packaging = self._package_with_guard(niche, topic, clips, credits_str, trending_titles, used_titles, strategy_directives)
 
         dynamic_title = packaging["video_title"]
         banner_header = packaging["banner_title"]
@@ -315,6 +364,7 @@ class ViralVideoPipeline:
                 f"Boring={sorted(boring_ranks)} | LabelFixes={label_fixes}"
             )
             modified = False
+            swapped = False
             for idx, c in enumerate(clips):
                 r_num = int(c.get("rank", 0))
                 if r_num in boring_ranks and reserves_pool:
@@ -322,6 +372,7 @@ class ViralVideoPipeline:
                     replacement["rank"] = r_num
                     clips[idx] = replacement
                     modified = True
+                    swapped = True
                     continue
                 if str(r_num) in label_fixes:
                     c["rank_label"] = label_fixes[str(r_num)][:20].strip()
@@ -342,6 +393,14 @@ class ViralVideoPipeline:
 
             if modified:
                 credits_str = credit_line(clips)
+                if swapped or label_fixes:
+                    # The clips changed after the title was written: write and fact-check it again for the FINAL lineup.
+                    packaging = self._package_with_guard(niche, topic, clips, credits_str, trending_titles, used_titles, strategy_directives)
+                    dynamic_title = packaging["video_title"]
+                    banner_header = packaging["banner_title"]
+                    dynamic_desc = packaging["description"]
+                    dynamic_tags = packaging["tags"]
+                    category_id = packaging["category_id"]
                 self.compiler.assemble_full_ranking_video(
                     title=banner_header,
                     clips=clips,
@@ -414,4 +473,6 @@ class ViralVideoPipeline:
             "category_id": category_id,
             "qa": qa_result,
             "credits": credits_str,
+            "final_clips": clips,
+            "packaging_guard": packaging.get("guard", ""),
         }

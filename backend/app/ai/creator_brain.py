@@ -341,6 +341,9 @@ class GeminiCreatorBrain:
         trending_titles: List[str] = None,
         used_titles: Optional[List[str]] = None,
         strategy_directives: Optional[Dict[str, Any]] = None,
+        premise_verified: bool = False,
+        matching_count: int = 0,
+        revision_notes: Optional[List[str]] = None,
     ) -> Dict[str, Any]:
         default_cat_id = self.CATEGORY_MAP.get(niche_id, "23")
         strat = strategy_directives or {}
@@ -377,7 +380,20 @@ class GeminiCreatorBrain:
             "4. Write `banner_title`: a clean, punchy 2-4 word top banner header (max 24 chars) that fits the exact vibe of these clips.\n"
             "5. Write `comment_question`: a natural, specific question about a real moment or detail in THIS video that makes viewers want to reply.\n"
             f"6. Today's Adaptive Packaging Note: {strat.get('packaging_directive', 'Be specific to the real clips and avoid repetitive templates.')}\n\n"
-            f"Sub-Niche ID: {niche_id} | Theme Concept: {seed_topic}\n\n"
+            "7. TRUTHFULNESS (most important): the title, banner and description may ONLY claim things that are true of the clips listed below. "
+            "Never mention a person, object, number or situation unless the clip descriptions show it. "
+            "Counts like '5 times' are only allowed if ALL of that many clips show it.\n"
+            + (
+                f"8. The Original Concept below IS verified: all {len(ranked_clips)} clips show it, you may use it.\n"
+                if premise_verified else
+                f"8. The Original Concept below is NOT verified (only {matching_count} of {len(ranked_clips)} clips show it). "
+                "Do NOT use its wording or its count. Title the video by what the clips ACTUALLY show (the shared theme of the real descriptions below).\n"
+            )
+            + (
+                "9. YOUR PREVIOUS ATTEMPT WAS REJECTED FOR THESE FACTUAL PROBLEMS, FIX THEM: " + " | ".join(revision_notes) + "\n"
+                if revision_notes else ""
+            )
+            + f"\nSub-Niche ID: {niche_id} | Original Concept (verified={premise_verified}): {seed_topic}\n\n"
             f"=== ACTUAL RANKED CLIPS IN THIS VIDEO (#{len(ranked_clips)} DOWN TO #1) ===\n"
             f"{clips_block}\n\n"
             f"=== PREVIOUSLY USED TITLES (NEVER REPEAT THESE FORMULAS) ===\n"
@@ -421,6 +437,9 @@ class GeminiCreatorBrain:
         except Exception as exc:
             logger.warning(f"Dynamic packaging fallback: {exc}")
 
+        if not premise_verified:
+            from .packaging_guard import safe_packaging
+            return safe_packaging(niche_id, ranked_clips, default_cat_id)
         top_clip = next((c for c in ranked_clips if int(c.get("rank", 0)) == 1), ranked_clips[-1] if ranked_clips else {})
         top_lbl = top_clip.get("rank_label") or "Moment #1"
         breakdown_lines = [
@@ -441,6 +460,35 @@ class GeminiCreatorBrain:
             "tags": ["Shorts", niche_id, "Ranking", "Viral Shorts"],
             "category_id": default_cat_id,
         }
+
+    def verify_packaging_claims(
+        self,
+        title: str,
+        banner: str,
+        description: str,
+        ranked_clips: List[Dict[str, Any]],
+    ) -> Dict[str, Any]:
+        """Second, independent pass: does every claim in the title/banner/description hold for the clips that are really in the video?"""
+        lines = "\n".join(
+            f"#{c.get('rank')}: {c.get('what_happens') or c.get('title')} (evidence: {c.get('theme_evidence', '') or 'n/a'})"
+            for c in sorted(ranked_clips, key=lambda x: -int(x.get("rank", 0)))
+        )
+        prompt = (
+            "You are a strict fact-checker for YouTube Shorts packaging. Below is what each clip in the video REALLY shows, "
+            "then the title, on-screen banner and description opening that will be published.\n\n"
+            f"CLIPS:\n{lines}\n\nTITLE: {title}\nBANNER: {banner}\nDESCRIPTION OPENING: {description[:400]}\n\n"
+            "List every claim in the title/banner/description that is NOT true of ALL the clips (wrong subject, wrong count, "
+            "something not shown, an event that only some clips show presented as if all do). "
+            "Return strict JSON: {\"ok\": true|false, \"issues\": [\"short description of each false claim\"]}. "
+            "ok must be false if there is any issue."
+        )
+        try:
+            data = self._call_gemini_json([{"text": prompt}], temperature=0.0)
+            issues = [str(i) for i in (data.get("issues") or []) if str(i).strip()]
+            return {"ok": bool(data.get("ok", not issues)) and not issues, "issues": issues, "checked": True}
+        except Exception as exc:
+            logger.warning(f"Packaging fact-check unavailable: {exc}")
+            return {"ok": True, "issues": [], "checked": False}
 
     def review_video_with_gemini_vision(
         self,
